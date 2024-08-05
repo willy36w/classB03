@@ -133,25 +133,79 @@
 </script>
 
 
+<style>
+    .movie {
+        width: 49%;
+        border: 1px solid white;
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0.5%;
+        box-sizing: border-box;
+        padding: 5px;
+        border-radius: 5px;
+    }
 
+    .movie-btn {
+        width: 100%;
+    }
+
+    .movie-img {
+        width: 35%;
+    }
+
+    .movie-info {
+        width: 65%;
+        font-size: 14px;
+    }
+
+    .movie * {
+        box-sizing: border-box;
+    }
+</style>
 <div class="half">
     <h1>院線片清單</h1>
-    <div class="rb tab" style="width:95%;">
+    <div class="rb tab" style="width:95%;display:flex;flex-wrap:wrap">
         <?php
-        $all = $Movie->count(" WHERE ondate >= '2024-07-24' && ondate <='2024-07-26' && sh=1");
+        $today = date("Y-m-d");
+        $ondate = date("Y-m-d", strtotime("-2 days"));
+        $all = $Movie->count(" WHERE ondate >= '$ondate' && ondate <='$today' && sh=1");
         $div = 4;
         $pages = ceil($all / $div);
         $now = $_GET['p'] ?? 1;
         $start = ($now - 1) * $div;
-        $movies = q("SELECT * FROM `movies` WHERE ondate >= '2024-07-24' && ondate <='2024-07-26' && sh=1 order by rank limit $start,$div");
+        $movies = q("SELECT * FROM `movies` WHERE ondate >= '$ondate' && ondate <='$today' && sh=1 order by rank limit $start,$div");
+        //$movies = q("SELECT * FROM `movies` WHERE ondate BETWEEN '2024-07-24' AND '2024-07-26' && sh=1 order by rank limit $start,$div");
+        $level = [
+            '1' => '普遍級',
+            '2' => '保護級',
+            '3' => '輔導級',
+            '4' => '限制級',
+        ];
         foreach ($movies as $movie) {
         ?>
-            <div class="movie"><?= $movie['name']; ?></div>
-
+            <div class="movie">
+                <div class="movie-img">
+                    <a href='?do=intro&id=<?= $movie['id']; ?>'>
+                        <img src="./images/<?= $movie['poster']; ?>" style="width:60px;">
+                    </a>
+                </div>
+                <div class="movie-info">
+                    <div style="font-size:18px"><?= $movie['name']; ?></div>
+                    <div>分級：
+                        <img src="./icon/03C0<?= $movie['level']; ?>.png" style="width:20px;">
+                        <?= $level[$movie['level']]; ?>
+                    </div>
+                    <div>上映日期：<?= $movie['ondate']; ?></div>
+                </div>
+                <div class="movie-btn">
+                    <button onclick="location.href='?do=intro&id=<?= $movie['id']; ?>'">劇情簡介</button>
+                    <button onclick="location.href='?do=order&id=<?= $movie['id']; ?>'">線上訂票</button>
+                </div>
+            </div>
         <?php
         }
         ?>
-        <div class="ct">
+        <div class="ct" style="width:100%">
             <?php
             if (($now - 1) > 0) {
                 $prev = $now - 1;
